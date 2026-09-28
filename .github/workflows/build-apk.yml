@@ -43,21 +43,30 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Fix Android SDK and AGP Versions for Start.io
+    - name: Fix Gradle, AGP, and SDK Versions (Bulletproof Fix)
       run: |
-        # 1. Update Android Gradle Plugin to 8.7.2 (supports API 37)
-        sed -i "s/classpath 'com.android.tools.build:gradle:[0-9.]*'/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
+        echo "=== BEFORE MODIFICATION ==="
+        cat android/gradle/wrapper/gradle-wrapper.properties || echo "Not found"
+        grep "compileSdkVersion\|targetSdkVersion" android/variables.gradle || echo "Not found"
         
-        # 2. Force compileSdkVersion and targetSdkVersion to 37
-        sed -i 's/compileSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/compileSdkVersion = 37/' android/variables.gradle
-        sed -i 's/targetSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/targetSdkVersion = 37/' android/variables.gradle
+        # 1. Simple string replacement for Gradle (8.0.2 -> 8.9)
+        sed -i 's/gradle-8.0.2-all.zip/gradle-8.9-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
         
-        # 3. Suppress unsupported compile SDK warning
+        # 2. Simple string replacement for AGP (8.0.0 -> 8.7.2)
+        sed -i "s/classpath 'com.android.tools.build:gradle:8.0.0'/classpath 'com.android.tools.build:gradle:8.7.2'/g" android/build.gradle
+        
+        # 3. Simple string replacement for SDK (33 -> 37)
+        sed -i 's/compileSdkVersion = 33/compileSdkVersion = 37/g' android/variables.gradle
+        sed -i 's/targetSdkVersion = 33/targetSdkVersion = 37/g' android/variables.gradle
+        
+        # 4. Suppress unsupported compile SDK warning
         echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
         
-        echo "✅ SDK and AGP versions updated to 37 successfully"
-        cat android/variables.gradle
-    
+        echo "=== AFTER MODIFICATION ==="
+        cat android/gradle/wrapper/gradle-wrapper.properties
+        grep "compileSdkVersion\|targetSdkVersion" android/variables.gradle
+        grep "classpath" android/build.gradle
+
     - name: Build APK
       run: |
         cd android
