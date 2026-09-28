@@ -43,30 +43,32 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Fix Gradle, AGP, and SDK Versions (100% Bulletproof)
+    - name: Fix Android SDK and AGP Versions (Ultimate Bulletproof Fix)
       run: |
         echo "=== BEFORE MODIFICATION ==="
         cat android/variables.gradle || echo "Not found"
         grep "classpath" android/build.gradle || echo "Not found"
         
-        # 1. Update Gradle Wrapper to 8.9
-        sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.9-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
+        # 1. Update AGP to 8.7.2 (matches any version like 8.0.0 and replaces it)
+        sed -i "s/com\.android\.tools\.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.7.2/g" android/build.gradle
         
-        # 2. Update AGP to 8.7.2 (Matches any version like 8.0.0 and replaces it)
-        sed -i 's/com\.android\.tools\.build:gradle:[0-9.]\+/com.android.tools.build:gradle:8.7.2/g' android/build.gradle
+        # 2. Force compileSdk and targetSdk to 37 (replaces ENTIRE line, spacing doesn't matter)
+        sed -i 's/compileSdkVersion.*/compileSdkVersion = 37/' android/variables.gradle
+        sed -i 's/targetSdkVersion.*/targetSdkVersion = 37/' android/variables.gradle
         
-        # 3. Update compileSdkVersion and targetSdkVersion to 37 (Replaces ANY number on these lines)
-        sed -i '/compileSdkVersion/s/[0-9]\+/37/' android/variables.gradle
-        sed -i '/targetSdkVersion/s/[0-9]\+/37/' android/variables.gradle
+        # 3. Create symlink for android-37 if only android-37.0 exists on GitHub runner
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        if [ -d "$ANDROID_HOME/platforms/android-37.0" ] && [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
+          ln -s $ANDROID_HOME/platforms/android-37.0 $ANDROID_HOME/platforms/android-37
+          echo "✅ Created symlink for android-37"
+        fi
         
         # 4. Suppress unsupported compile SDK warning
         echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
         
         echo "=== AFTER MODIFICATION ==="
-        echo "--- variables.gradle ---"
-        cat android/variables.gradle
-        echo "--- build.gradle classpath ---"
-        grep "classpath" android/build.gradle || true
+        cat android/variables.gradle || echo "Not found"
+        grep "classpath" android/build.gradle || echo "Not found"
 
     - name: Build APK
       run: |
