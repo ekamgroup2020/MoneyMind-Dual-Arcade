@@ -1,0 +1,44 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Install Dependencies
+      run: |
+        npm install
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npm install capacitor-unity-ads
+        npm install @martinezmanoloa/capacitor-startio-ads
+    
+    - name: Build Android APK
+      run: |
+        npx cap add android
+        npx cap sync android
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: MoneyMind-Dual-Arcade
+        path: android/app/build/outputs/apk/debug/app-debug.apk

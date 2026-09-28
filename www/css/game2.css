@@ -1,0 +1,40 @@
+.color-game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.color-word {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.color-button {
+  padding: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  border: 3px solid white;
+  border-radius: 10px;
+  cursor: pointer;
+  background: white;
+  color: #333;
+  transition: transform 0.1s;
+}
+
+.color-button:active {
+  transform: scale(0.95);
+}

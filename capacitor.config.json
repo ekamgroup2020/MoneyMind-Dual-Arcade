@@ -1,0 +1,17 @@
+{
+  "appId": "com.ekamgroup.moneymind",
+  "appName": "MoneyMind Dual Arcade",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#FFD700",
+      "showSpinner": false
+    }
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#FFD700"
+  }
+}
