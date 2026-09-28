@@ -45,18 +45,23 @@ jobs:
     
     - name: Fix Android SDK and AGP Versions for Start.io
       run: |
-        # 1. Update Android Gradle Plugin to 8.7.2 (which supports API 37)
-        sed -i "s/classpath 'com.android.tools.build:gradle:.*'/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
+        echo "=== BEFORE MODIFICATION ==="
+        cat android/variables.gradle || echo "variables.gradle not found"
+        grep "classpath" android/build.gradle || echo "classpath not found"
         
-        # 2. Force compileSdkVersion and targetSdkVersion to 37
-        sed -i 's/compileSdkVersion = .*/compileSdkVersion = 37/' android/variables.gradle
-        sed -i 's/targetSdkVersion = .*/targetSdkVersion = 37/' android/variables.gradle
+        # 1. Update Android Gradle Plugin to 8.7.2 (supports API 37)
+        sed -i "s/classpath 'com.android.tools.build:gradle:[0-9.]*'/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
+        
+        # 2. Force compileSdkVersion and targetSdkVersion to 37 (handles any spacing)
+        sed -i 's/compileSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/compileSdkVersion = 37/' android/variables.gradle
+        sed -i 's/targetSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/targetSdkVersion = 37/' android/variables.gradle
         
         # 3. Suppress unsupported compile SDK warning
         echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
         
-        echo "✅ SDK and AGP versions updated to 37 successfully"
+        echo "=== AFTER MODIFICATION ==="
         cat android/variables.gradle
+        grep "classpath" android/build.gradle
     
     - name: Build APK
       run: |
