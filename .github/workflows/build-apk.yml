@@ -43,11 +43,12 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Build APK
+    - name: Build APK (With Full Error Details)
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        # --stacktrace ਅਤੇ --info ਸਾਨੂੰ ਬਿਲਕੁਲ ਸਹੀ ਐਰਰ ਦੱਸਣਗੇ
+        ./gradlew assembleDebug --stacktrace --info
     
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
