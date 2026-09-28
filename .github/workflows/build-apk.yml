@@ -43,11 +43,25 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Build APK (With Full Error Details)
+    - name: Fix Android SDK and AGP Versions for Start.io
+      run: |
+        # 1. Update Android Gradle Plugin to 8.7.2 (which supports API 37)
+        sed -i "s/classpath 'com.android.tools.build:gradle:.*'/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
+        
+        # 2. Force compileSdkVersion and targetSdkVersion to 37
+        sed -i 's/compileSdkVersion = .*/compileSdkVersion = 37/' android/variables.gradle
+        sed -i 's/targetSdkVersion = .*/targetSdkVersion = 37/' android/variables.gradle
+        
+        # 3. Suppress unsupported compile SDK warning
+        echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
+        
+        echo "✅ SDK and AGP versions updated to 37 successfully"
+        cat android/variables.gradle
+    
+    - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        # --stacktrace ਅਤੇ --info ਸਾਨੂੰ ਬਿਲਕੁਲ ਸਹੀ ਐਰਰ ਦੱਸਣਗੇ
         ./gradlew assembleDebug --stacktrace --info
     
     - name: Upload APK Artifact
