@@ -43,29 +43,33 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Fix Gradle, AGP, and SDK Versions (Bulletproof Fix)
+    - name: Fix Gradle, AGP, and SDK Versions (Ultimate Bulletproof Fix)
       run: |
         echo "=== BEFORE MODIFICATION ==="
         cat android/gradle/wrapper/gradle-wrapper.properties || echo "Not found"
-        grep "compileSdkVersion\|targetSdkVersion" android/variables.gradle || echo "Not found"
+        grep "classpath" android/build.gradle || echo "Not found"
+        cat android/variables.gradle || echo "Not found"
         
-        # 1. Simple string replacement for Gradle (8.0.2 -> 8.9)
-        sed -i 's/gradle-8.0.2-all.zip/gradle-8.9-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+        # 1. Force Gradle to 8.9 (Required for AGP 8.7.2)
+        sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.9-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
         
-        # 2. Simple string replacement for AGP (8.0.0 -> 8.7.2)
-        sed -i "s/classpath 'com.android.tools.build:gradle:8.0.0'/classpath 'com.android.tools.build:gradle:8.7.2'/g" android/build.gradle
+        # 2. Force AGP to 8.7.2 (Supports API 37)
+        sed -i "s/classpath 'com.android.tools.build:gradle:.*/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
         
-        # 3. Simple string replacement for SDK (33 -> 37)
-        sed -i 's/compileSdkVersion = 33/compileSdkVersion = 37/g' android/variables.gradle
-        sed -i 's/targetSdkVersion = 33/targetSdkVersion = 37/g' android/variables.gradle
+        # 3. Force SDK versions to 37 (Matches ANY format: with or without '=', any spacing)
+        sed -i 's/compileSdkVersion.*/compileSdkVersion = 37/' android/variables.gradle
+        sed -i 's/targetSdkVersion.*/targetSdkVersion = 37/' android/variables.gradle
         
         # 4. Suppress unsupported compile SDK warning
         echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
         
         echo "=== AFTER MODIFICATION ==="
+        echo "--- gradle-wrapper.properties ---"
         cat android/gradle/wrapper/gradle-wrapper.properties
-        grep "compileSdkVersion\|targetSdkVersion" android/variables.gradle
-        grep "classpath" android/build.gradle
+        echo "--- build.gradle classpath ---"
+        grep "classpath" android/build.gradle || true
+        echo "--- variables.gradle ---"
+        cat android/variables.gradle || true
 
     - name: Build APK
       run: |
