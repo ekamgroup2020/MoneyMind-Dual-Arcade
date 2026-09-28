@@ -22,6 +22,11 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
     
+    - name: Setup Android SDK (Install API 37)
+      uses: android-actions/setup-android@v3
+      with:
+        packages: 'platforms;android-37 build-tools;37.0.0'
+    
     - name: Install Dependencies
       run: |
         npm install --legacy-peer-deps
@@ -43,30 +48,20 @@ jobs:
           echo "⚠️ google-services.json not found in root directory"
         fi
     
-    - name: Fix Gradle, AGP, and SDK Versions for Start.io
+    - name: Fix Android SDK and AGP Versions for Start.io
       run: |
-        echo "=== BEFORE MODIFICATION ==="
-        
-        # 1. Update Gradle Wrapper to 8.9 (Required for AGP 8.7.2)
-        sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.9-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
-        
-        # 2. Update Android Gradle Plugin to 8.7.2 (supports API 37)
+        # 1. Update Android Gradle Plugin to 8.7.2 (supports API 37)
         sed -i "s/classpath 'com.android.tools.build:gradle:[0-9.]*'/classpath 'com.android.tools.build:gradle:8.7.2'/" android/build.gradle
         
-        # 3. Force compileSdkVersion and targetSdkVersion to 37
+        # 2. Force compileSdkVersion and targetSdkVersion to 37
         sed -i 's/compileSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/compileSdkVersion = 37/' android/variables.gradle
         sed -i 's/targetSdkVersion[[:space:]]*=[[:space:]]*[0-9]\+/targetSdkVersion = 37/' android/variables.gradle
         
-        # 4. Suppress unsupported compile SDK warning
+        # 3. Suppress unsupported compile SDK warning
         echo "android.suppressUnsupportedCompileSdk=37" >> android/gradle.properties
         
-        echo "=== AFTER MODIFICATION ==="
-        echo "--- gradle-wrapper.properties ---"
-        cat android/gradle/wrapper/gradle-wrapper.properties
-        echo "--- build.gradle classpath ---"
-        grep "classpath" android/build.gradle || true
-        echo "--- variables.gradle ---"
-        cat android/variables.gradle || true
+        echo "✅ SDK and AGP versions updated to 37 successfully"
+        cat android/variables.gradle
     
     - name: Build APK
       run: |
